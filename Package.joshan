@@ -1,0 +1,18 @@
+{
+  "name": "lighter-send-10",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node -r ts-node/register src/send_10_orders.ts"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.0",
+    "lighter-ts-sdk": "^1.0.7",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
+    "@types/node": "^20.11.0"
+  }
+}
