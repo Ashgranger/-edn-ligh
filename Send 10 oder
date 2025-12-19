@@ -1,0 +1,60 @@
+import "dotenv/config";
+import axios from "axios";
+import { Lighter, OrderSide } from "lighter-sdk";
+
+const PK = process.env.PRIVATE_KEY!;
+const RPC = process.env.RPC!;
+const POOL_ID = process.env.POOL_ID!;
+
+const lighter = new Lighter({
+    privateKey: PK,
+    rpcUrl: RPC,
+});
+
+async function sendMarketOrder(orderIndex: number, amountBERA: number) {
+    const baseAmount = Math.floor(amountBERA * 1_000_000); // 1 BERA = 1e6
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+            console.log(
+                `[Order ${orderIndex}] Attempt ${attempt} → MARKET BUY ${amountBERA} BERA (baseAmount=${baseAmount})`
+            );
+
+            const tx = await lighter.order.create({
+                poolId: POOL_ID,
+                side: OrderSide.BUY,
+                type: "MARKET",
+                baseAmount,
+            });
+
+            console.log(
+                `[Order ${orderIndex}] Created → hash: ${tx.transactionHash}`
+            );
+
+            await lighter.transaction.wait(tx.transactionHash);
+
+            console.log("✅ Transaction committed successfully!");
+            return;
+        } catch (err: any) {
+            console.log(
+                `[Order ${orderIndex}] ERROR on attempt ${attempt}:`,
+                err.message || err
+            );
+            await new Promise((r) => setTimeout(r, 1500));
+        }
+    }
+
+    console.log(`❌ Order ${orderIndex} failed after 3 attempts.`);
+}
+
+async function main() {
+    console.log("Starting send_10_orders (0.05 BERA each) ...");
+
+    for (let i = 1; i <= 10; i++) {
+        await sendMarketOrder(i, 0.05);
+    }
+
+    console.log("Done.");
+}
+
+main().catch((err) => console.error("Fatal Error:", err));
